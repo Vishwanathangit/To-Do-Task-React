@@ -1,0 +1,723 @@
+# Code Repository Snapshot: ToDo List Task
+
+--------------------------------------------
+Generated with reposnap v1.3.0
+Project: https://github.com/akhshyganesh/reposnap#readme
+Author: akhshyganesh
+Generated on: 29/5/2025 at 7:46:25 pm
+--------------------------------------------
+
+
+📄 README.md
+  ---
+  # React + Vite
+  
+  This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+  
+  Currently, two official plugins are available:
+  
+  - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+  - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+  
+  ## Expanding the ESLint configuration
+  
+  If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+  
+  ---
+
+📄 eslint.config.js
+  ---
+  import js from '@eslint/js'
+  import globals from 'globals'
+  import reactHooks from 'eslint-plugin-react-hooks'
+  import reactRefresh from 'eslint-plugin-react-refresh'
+  
+  export default [
+    { ignores: ['dist'] },
+    {
+      files: ['**/*.{js,jsx}'],
+      languageOptions: {
+        ecmaVersion: 2020,
+        globals: globals.browser,
+        parserOptions: {
+          ecmaVersion: 'latest',
+          ecmaFeatures: { jsx: true },
+          sourceType: 'module',
+        },
+      },
+      plugins: {
+        'react-hooks': reactHooks,
+        'react-refresh': reactRefresh,
+      },
+      rules: {
+        ...js.configs.recommended.rules,
+        ...reactHooks.configs.recommended.rules,
+        'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+        'react-refresh/only-export-components': [
+          'warn',
+          { allowConstantExport: true },
+        ],
+      },
+    },
+  ]
+  
+  ---
+
+📄 index.html
+  ---
+  <!doctype html>
+  <html lang="en">
+  
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./src/assets/images/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDo-Task Management App</title>
+  </head>
+  
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+  
+  </html>
+  ---
+
+📁 public/
+📁 src/
+  📄 App.css
+    ---
+    
+    ---
+
+  📄 App.jsx
+    ---
+    import React from 'react';
+    import './App.css';
+    import Home from './pages/Home';
+    import AddTask from './pages/AddTask';
+    import EditTask from './pages/EditTask';
+    import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+    
+    function App() {
+      return (
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/AddTask" element={<AddTask />} />
+            <Route path="/edit/:id" element={<EditTask />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </BrowserRouter>
+      );
+    }
+    
+    export default App;
+    ---
+
+  📁 assets/
+    📁 images/
+  📄 data.jsx
+    ---
+    export const getTasks = () => {
+      const data = localStorage.getItem("tasks");
+      return data ? JSON.parse(data) : [];
+    };
+    
+    export const saveTasks = (tasks) => {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    };
+    ---
+
+  📄 index.css
+    ---
+    @import "tailwindcss";
+    
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    textarea {
+      min-height: 80px;
+    }
+    ---
+
+  📄 main.jsx
+    ---
+    import React from 'react'
+    import { StrictMode } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import './index.css'
+    import App from './App.jsx'
+    
+    createRoot(document.getElementById('root')).render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    )
+    ---
+
+  📁 pages/
+    📄 AddTask.jsx
+      ---
+      import React, { useState } from 'react';
+      import { getTasks, saveTasks } from '../data';
+      import { useNavigate } from 'react-router-dom';
+      
+      const AddTask = () => {
+          const navigate = useNavigate();
+          const [title, setTitle] = useState('');
+          const [description, setDescription] = useState('');
+          const [priority, setPriority] = useState('');
+          const [status, setStatus] = useState('');
+          const [errors, setErrors] = useState({ title: '', priority: '', status: '' });
+      
+          const handleSubmit = (e) => {
+              e.preventDefault();
+      
+              const newErrors = { title: '', priority: '', status: '' };
+              let hasError = false;
+      
+              if (!title.trim()) {
+                  newErrors.title = 'Task name is required.';
+                  hasError = true;
+              }
+              if (!priority) {
+                  newErrors.priority = 'Please select a priority.';
+                  hasError = true;
+              }
+              if (!status) {
+                  newErrors.status = 'Please select a status.';
+                  hasError = true;
+              }
+      
+              if (hasError) {
+                  setErrors(newErrors);
+                  return;
+              }
+      
+              const newTask = {
+                  id: Date.now(),
+                  title,
+                  description,
+                  priority,
+                  status,
+                  completed: false,
+              };
+      
+              const tasks = getTasks();
+              tasks.push(newTask);
+              saveTasks(tasks);
+      
+              navigate('/');
+          };
+      
+          const handleBack = (event) => {
+              event.preventDefault();
+              navigate('/');
+          };
+      
+          return (
+              <div className="container mx-auto p-4 sm:p-6 max-w-lg">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">
+                      Add New Task
+                  </h1>
+                  <button
+                      onClick={handleBack}
+                      className="bg-gray-500 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-gray-600 transition mb-4 text-sm sm:text-base w-full sm:w-auto cursor-pointer"
+                  >
+                      Back
+                  </button>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                          <input
+                              type="text"
+                              value={title}
+                              onChange={(e) => {
+                                  setTitle(e.target.value);
+                                  setErrors((prev) => ({ ...prev, title: e.target.value.trim() ? '' : prev.title }));
+                              }}
+                              placeholder="Task Name"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          {errors.title && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.title}</p>}
+                      </div>
+                      <div>
+                          <textarea
+                              value={description}
+                              onChange={(e) => setDescription(e.target.value)}
+                              placeholder="Description"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                              rows="4"
+                          />
+                      </div>
+                      <div>
+                          <select
+                              value={priority}
+                              onChange={(e) => {
+                                  setPriority(e.target.value);
+                                  setErrors((prev) => ({ ...prev, priority: e.target.value ? '' : prev.priority }));
+                              }}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                              <option value="" disabled>
+                                  Select a Priority
+                              </option>
+                              <option value="High">High</option>
+                              <option value="Medium">Medium</option>
+                              <option value="Low">Low</option>
+                          </select>
+                          {errors.priority && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.priority}</p>}
+                      </div>
+                      <div>
+                          <select
+                              value={status}
+                              onChange={(e) => {
+                                  setStatus(e.target.value);
+                                  setErrors((prev) => ({ ...prev, status: e.target.value ? '' : prev.status }));
+                              }}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                              <option value="" disabled>
+                                  Select a Status
+                              </option>
+                              <option value="Pending">Pending</option>
+                              <option value="Completed">Completed</option>
+                          </select>
+                          {errors.status && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.status}</p>}
+                      </div>
+                      <button
+                          className="w-full bg-blue-600 text-white px-3 rounded-md py-2 sm:px-4 sm:py-2 hover:bg-blue-700 transition text-sm sm:text-base cursor-pointer"
+                      >
+                          Add Task
+                      </button>
+                  </form>
+              </div>
+          );
+      };
+      
+      export default AddTask;
+      ---
+
+    📄 EditTask.jsx
+      ---
+      import React, { useEffect, useState } from 'react';
+      import { useNavigate, useParams } from 'react-router-dom';
+      import { getTasks, saveTasks } from '../data';
+      
+      const EditTask = () => {
+          const { id } = useParams();
+          const navigate = useNavigate();
+          const [task, setTask] = useState(null);
+          const [errors, setErrors] = useState({ title: '', priority: '', status: '' });
+      
+          useEffect(() => {
+              const tasks = getTasks();
+              const taskToEdit = tasks.find((t) => t.id === Number(id));
+              if (taskToEdit) {
+                  setTask(taskToEdit);
+              } else {
+                  alert('Task not found');
+                  navigate('/');
+              }
+          }, [id, navigate]);
+      
+          const handleSubmit = (e) => {
+              e.preventDefault();
+      
+              const newErrors = { title: '', priority: '', status: '' };
+              let hasError = false;
+      
+              if (!task.title.trim()) {
+                  newErrors.title = 'Task name is required.';
+                  hasError = true;
+              }
+              if (!task.priority) {
+                  newErrors.priority = 'Please select a priority.';
+                  hasError = true;
+              }
+              if (!task.status) {
+                  newErrors.status = 'Please select a status.';
+                  hasError = true;
+              }
+      
+              if (hasError) {
+                  setErrors(newErrors);
+                  return;
+              }
+      
+              const updatedTask = { ...task };
+      
+              const tasks = getTasks().map((t) =>
+                  t.id === Number(id) ? updatedTask : t
+              );
+      
+              saveTasks(tasks);
+              alert('Task updated!');
+              navigate('/');
+          };
+      
+          const handleChange = (e) => {
+              const { name, value } = e.target;
+              setTask((prev) => ({ ...prev, [name]: value }));
+              setErrors((prev) => ({ ...prev, [name]: value ? '' : prev[name] }));
+          };
+      
+          return (
+              task && (
+                  <div className="container mx-auto p-4 sm:p-6 max-w-lg">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">
+                          Edit Task
+                      </h1>
+                      <button
+                          onClick={() => navigate('/')}
+                          className="bg-gray-500 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-gray-600 transition mb-4 text-sm sm:text-base w-full sm:w-auto cursor-pointer"
+                      >
+                          Back
+                      </button>
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                          <div>
+                              <input
+                                  type="text"
+                                  name="title"
+                                  value={task.title}
+                                  onChange={handleChange}
+                                  placeholder="Task Name"
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              {errors.title && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.title}</p>}
+                          </div>
+                          <div>
+                              <textarea
+                                  name="description"
+                                  value={task.description}
+                                  onChange={handleChange}
+                                  placeholder="Description"
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                                  rows="4"
+                              />
+                          </div>
+                          <div>
+                              <select
+                                  name="priority"
+                                  value={task.priority}
+                                  onChange={handleChange}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                  <option value="" disabled>
+                                      Select a Priority
+                                  </option>
+                                  <option value="High">High</option>
+                                  <option value="Medium">Medium</option>
+                                  <option value="Low">Low</option>
+                              </select>
+                              {errors.priority && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.priority}</p>}
+                          </div>
+                          <div>
+                              <select
+                                  name="status"
+                                  value={task.status}
+                                  onChange={handleChange}
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                  <option value="" disabled>
+                                      Select a Status
+                                  </option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Completed">Completed</option>
+                              </select>
+                              {errors.status && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.status}</p>}
+                          </div>
+                          <button
+                              className="w-full bg-blue-600 text-white px-3 rounded-md py-2 sm:px-4 sm:py-2 hover:bg-blue-700 transition text-sm sm:text-base cursor-pointer"
+                          >
+                              Update Task
+                          </button>
+                      </form>
+                  </div>
+              )
+          );
+      };
+      
+      export default EditTask;
+      ---
+
+    📄 Home.jsx
+      ---
+      import React, { useEffect, useState } from 'react';
+      import { useNavigate } from 'react-router-dom';
+      import { getTasks, saveTasks } from '../data';
+      
+      const Home = () => {
+          const [tasks, setTasks] = useState([]);
+          const [searchTerm, setSearchTerm] = useState('');
+          const [filterStatus, setFilterStatus] = useState('');
+          const [sortByPriority, setSortByPriority] = useState(false);
+          const [currentPage, setCurrentPage] = useState(1);
+          const tasksPerPage = 5;
+          const navigate = useNavigate();
+      
+          useEffect(() => {
+              const storedTasks = getTasks();
+              const tasksWithDefaults = storedTasks.map((task) => ({
+                  ...task,
+                  priority: task.priority || 'Medium',
+                  status: task.status || 'Pending',
+                  completed: task.completed || false,
+              }));
+              setTasks(tasksWithDefaults);
+          }, []);
+      
+          const handleAddTask = () => {
+              navigate('/AddTask');
+          };
+      
+          const handleEdit = (id) => {
+              navigate(`/edit/${id}`);
+          };
+      
+          const handleDelete = (id) => {
+              const updatedTasks = tasks.filter((task) => task.id !== id);
+              setTasks(updatedTasks);
+              saveTasks(updatedTasks);
+          };
+      
+          const handleToggleComplete = (id) => {
+              const updatedTasks = tasks.map((task) =>
+                  task.id === id ? { ...task, completed: !task.completed } : task
+              );
+              setTasks(updatedTasks);
+              saveTasks(updatedTasks);
+          };
+      
+          const handleSortByPriority = () => {
+              setSortByPriority(true);
+              setCurrentPage(1);
+          };
+      
+          const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+      
+          const filteredTasks = tasks
+              .filter((task) => {
+                  const matchesSearch =
+                      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      task.description.toLowerCase().includes(searchTerm.toLowerCase());
+                  const matchesStatus = filterStatus
+                      ? (filterStatus === 'Completed' ? task.status === 'Completed' : task.status === 'Pending')
+                      : true;
+                  return matchesSearch && matchesStatus;
+              })
+              .sort((a, b) => {
+                  if (sortByPriority) {
+                      return priorityOrder[b.priority] - priorityOrder[a.priority];
+                  }
+                  return 0;
+              });
+      
+          const pendingTasksCount = tasks.filter((task) => task.status === 'Pending').length;
+      
+          const indexOfLastTask = currentPage * tasksPerPage;
+          const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+          const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask) || [];
+      
+          const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+      
+          const paginate = (pageNumber) => setCurrentPage(pageNumber);
+      
+          const getPriorityClasses = (priority) => {
+              switch (priority) {
+                  case 'High':
+                      return 'bg-red-700 text-white';
+                  case 'Medium':
+                      return 'bg-orange-500 text-white';
+                  case 'Low':
+                      return 'bg-green-600 text-white';
+                  default:
+                      return 'bg-gray-500 text-white';
+              }
+          };
+      
+          return (
+              <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">
+                      Task List
+                  </h1>
+                  <p className="text-base sm:text-lg text-gray-600 mb-4">
+                      Pending Tasks: {pendingTasksCount}
+                  </p>
+                  <div className="flex flex-col gap-4 mb-6">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                          <button
+                              onClick={handleAddTask}
+                              className="bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition text-sm sm:text-base w-full sm:w-auto cursor-pointer"
+                          >
+                              Add Task
+                          </button>
+                          <button
+                              onClick={handleSortByPriority}
+                              className="bg-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-purple-700 transition text-sm sm:text-base w-full sm:w-auto cursor-pointer"
+                          >
+                              Sort by Priority
+                          </button>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                          <input
+                              type="text"
+                              placeholder="Search by title or description"
+                              value={searchTerm}
+                              onChange={(e) => {
+                                  setSearchTerm(e.target.value);
+                                  setCurrentPage(1);
+                              }}
+                              className="border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                          />
+                          <div className="flex flex-wrap gap-2">
+                              <button
+                                  onClick={() => {
+                                      setFilterStatus('');
+                                      setCurrentPage(1);
+                                  }}
+                                  className={`px-3 py-2 rounded-md transition text-sm sm:text-base flex-1 sm:flex-none ${filterStatus === ''
+                                          ? 'bg-blue-600 text-white'
+                                          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                      }`}
+                              >
+                                  All
+                              </button>
+                              <button
+                                  onClick={() => {
+                                      setFilterStatus('Completed');
+                                      setCurrentPage(1);
+                                  }}
+                                  className={`px-3 py-2 rounded-md transition text-sm sm:text-base flex-1 sm:flex-none ${filterStatus === 'Completed'
+                                          ? 'bg-blue-600 text-white'
+                                          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                      }`}
+                              >
+                                  Completed
+                              </button>
+                              <button
+                                  onClick={() => {
+                                      setFilterStatus('Pending');
+                                      setCurrentPage(1);
+                                  }}
+                                  className={`px-3 py-2 rounded-md transition text-sm sm:text-base flex-1 sm:flex-none ${filterStatus === 'Pending'
+                                          ? 'bg-blue-600 text-white'
+                                          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                      }`}
+                              >
+                                  Pending
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+      
+                  {/* List layout for all screens */}
+                  <ul className="space-y-4">
+                      {currentTasks.length === 0 ? (
+                          <li className="text-center py-4 text-gray-500 text-sm">
+                              No tasks found
+                          </li>
+                      ) : (
+                          currentTasks.map((task) => (
+                              <li
+                                  key={task.id}
+                                  className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex flex-col gap-2"
+                              >
+                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                      <div className="flex items-center flex-1">
+                                          <input
+                                              type="checkbox"
+                                              checked={task.completed}
+                                              onChange={() => handleToggleComplete(task.id)}
+                                              className="h-4 w-4 cursor-pointer mr-2"
+                                          />
+                                          <div className="flex flex-col">
+                                              <span
+                                                  className={`text-sm sm:text-base font-medium ${task.completed ? 'line-through text-gray-500' : ''
+                                                      }`}
+                                              >
+                                                  {task.title}
+                                              </span>
+                                              <p
+                                                  className={`text-sm ${task.completed ? 'line-through text-gray-500' : 'text-gray-600'
+                                                      }`}
+                                              >
+                                                  {task.description}
+                                              </p>
+                                          </div>
+                                      </div>
+                                      <div className="flex gap-2 sm:ml-4">
+                                          <button
+                                              onClick={() => handleEdit(task.id)}
+                                              className="bg-yellow-500 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-md hover:bg-yellow-600 transition text-xs sm:text-sm"
+                                          >
+                                              Edit
+                                          </button>
+                                          <button
+                                              onClick={() => handleDelete(task.id)}
+                                              className="bg-red-500 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-md hover:bg-red-600 transition text-xs sm:text-sm"
+                                          >
+                                              Delete
+                                          </button>
+                                      </div>
+                                  </div>
+                                  <div className="flex justify-center gap-2 mt-2">
+                                      <span
+                                          className={`px-2 py-1 rounded-full text-xs ${getPriorityClasses(task.priority)}`}
+                                      >
+                                          {task.priority}
+                                      </span>
+                                      <span
+                                          className={`px-2 py-1 rounded-full text-xs ${task.status === 'Completed'
+                                                  ? 'bg-green-100 text-green-800'
+                                                  : 'bg-yellow-100 text-yellow-800'
+                                              }`}
+                                      >
+                                          {task.status}
+                                      </span>
+                                  </div>
+                              </li>
+                          ))
+                      )}
+                  </ul>
+      
+                  {totalPages > 1 && (
+                      <div className="flex flex-wrap justify-center gap-2 mt-6">
+                          {Array.from({ length: totalPages }, (_, index) => (
+                              <button
+                                  key={index + 1}
+                                  onClick={() => paginate(index + 1)}
+                                  className={`px-3 py-1 rounded-md transition text-sm ${currentPage === index + 1
+                                          ? 'bg-blue-600 text-white'
+                                          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                      }`}
+                              >
+                                  {index + 1}
+                              </button>
+                          ))}
+                      </div>
+                  )}
+              </div>
+          );
+      };
+      
+      export default Home;
+      ---
+
+📄 vite.config.js
+  ---
+  import { defineConfig } from 'vite'
+  import tailwindcss from '@tailwindcss/vite'
+  export default defineConfig({
+    plugins: [
+      tailwindcss(),
+    ],
+  })
+  ---
+
+
+# Snapshot Summary
+Total files processed: 12
